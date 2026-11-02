@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Por Esse Prisma</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Layout: uma coluna de celular; cada pergunta é um cartão que "refrata" para a resposta bíblica */
+:root{
+  --bg:#f6f7fb; --card:#ffffff; --fg:#17182b; --muted:#5d6079; --line:#e1e3ee;
+  --accent:#3b4fd0; --accent-ink:#ffffff; --soft:#eceffd;
+  --s1:#0e8a8a; --s2:#1f74b8; --s3:#3b4fd0; --s4:#5a3fc4; --s5:#7a35b0;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"Figtree",ui-sans-serif,system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12131f; --card:#1c1d2e; --fg:#f1f1f8; --muted:#a3a6c2; --line:#2e3047;
+  --accent:#8fa0ff; --accent-ink:#12131f; --soft:#22264a;
+  --s1:#2bb3ad; --s2:#3f97dc; --s3:#6f80f2; --s4:#8d70ec; --s5:#a866d6; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12131f; --card:#1c1d2e; --fg:#f1f1f8; --muted:#a3a6c2; --line:#2e3047;
+  --accent:#8fa0ff; --accent-ink:#12131f; --soft:#22264a;
+  --s1:#2bb3ad; --s2:#3f97dc; --s3:#6f80f2; --s4:#8d70ec; --s5:#a866d6; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.5}
+.wrap{max-width:560px;margin:0 auto;padding-block:20px 48px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:20px}
+.spectrum{height:6px;border-radius:6px;background:linear-gradient(90deg,var(--s1),var(--s2),var(--s3),var(--s4),var(--s5))}
+h1,h2{font-family:var(--display);font-weight:800;line-height:1.08;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:clamp(2.1rem,9vw,3rem)}
+h2{font-size:clamp(1.6rem,7vw,2.2rem)}
+.eyebrow{font-size:.78rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:600}
+p{margin:0}
+.lead{color:var(--muted)}
+.list{display:flex;flex-direction:column;gap:10px;list-style:none;padding:0;margin:0}
+.list a{display:flex;gap:14px;align-items:center;padding:16px;background:var(--card);border:1px solid var(--line);border-radius:14px;color:var(--fg);text-decoration:none;font-weight:600}
+.list a:focus-visible,.btn:focus-visible,.chip:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.num{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);color:#fff;font-size:.95rem}
+.done{margin-left:auto;font-size:.8rem;color:var(--muted);font-weight:500}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:16px}
+textarea{width:100%;min-height:84px;border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;background:var(--bg);color:var(--fg);resize:vertical}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:999px;padding:8px 14px;font:inherit;font-size:.92rem;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--soft);border-color:var(--accent);color:var(--fg)}
+.btn{border:0;border-radius:12px;padding:15px 18px;font:inherit;font-weight:600;cursor:pointer;background:var(--accent);color:var(--accent-ink);text-align:center;text-decoration:none;display:block}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.said{border-left:4px solid var(--line);padding-left:12px;color:var(--muted);font-style:italic}
+.prism{font-family:var(--display);font-weight:800;font-size:clamp(1.7rem,8vw,2.3rem);line-height:1.1;
+  background:linear-gradient(90deg,var(--s1),var(--s2),var(--s3),var(--s4),var(--s5));-webkit-background-clip:text;background-clip:text;color:transparent}
+.verse{background:var(--soft);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.verse q{quotes:none;font-size:1.05rem}
+.ref{font-size:.82rem;font-weight:600;color:var(--accent);letter-spacing:.04em}
+.label{font-family:var(--display);font-weight:800;font-size:1.15rem}
+.row{display:flex;gap:10px}
+.row>*{flex:1}
+.reveal{animation:rise .5s ease both}
+@keyframes rise{from{transform:translateY(10px);opacity:.2}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.reveal{animation:none}}
+.foot{font-size:.8rem;color:var(--muted);text-align:center}
+</style>
+<style>body{margin:0}</style>
+</head>
+<body>
+
+
+<div class="wrap" id="app"></div>
+
+<script>
+const Q = [
+ {t:"O que você acha de alguém sem palavra?", sub:"Aquele que promete e não cumpre.",
+  chips:["Não dá pra confiar","Perde meu respeito","Merece outra chance"],
+  mirror:"Quantas vezes você já prometeu algo a Deus? \"Agora vai\", \"nunca mais\", \"vou ler a Bíblia todo dia\"... e não cumpriu?",
+  v1:{q:"Quando a Deus fizeres algum voto, não tardes em cumpri-lo.",r:"Eclesiastes 5:4"},
+  grace:"E mesmo assim, Ele continua cumprindo a palavra dEle com você.",
+  v2:{q:"Se formos infiéis, ele permanece fiel; não pode negar-se a si mesmo.",r:"2 Timóteo 2:13"}},
+ {t:"O que você acha de quem fala mal dos outros pelas costas?", sub:"Na frente é amigo, longe é crítico.",
+  chips:["Gente falsa","Prefiro distância","Todo mundo faz"],
+  mirror:"A mesma boca que canta louvor no culto já comentou da vida de alguém essa semana?",
+  v1:{q:"Com ela bendizemos a Deus e Pai, e com ela amaldiçoamos os homens. De uma mesma boca procede bênção e maldição.",r:"Tiago 3:9-10"},
+  grace:"Deus não desistiu da sua boca. Ele limpa e recomeça.",
+  v2:{q:"Se confessarmos os nossos pecados, ele é fiel e justo para nos perdoar os pecados e nos purificar de toda injustiça.",r:"1 João 1:9"}},
+ {t:"O que você acha de alguém de duas caras?", sub:"Um jeito na igreja, outro em casa, outro na escola.",
+  chips:["Hipócrita","Não suporto","Acontece"],
+  mirror:"E o seu domingo combina com a sua segunda-feira? Seus lábios e seu coração estão no mesmo lugar?",
+  v1:{q:"Este povo honra-me com os seus lábios, mas o seu coração está longe de mim.",r:"Mateus 15:8"},
+  grace:"Deus conhece as duas caras e mesmo assim não nos trata como merecemos.",
+  v2:{q:"Não nos tratou segundo os nossos pecados, nem nos retribuiu segundo as nossas iniquidades.",r:"Salmos 103:10"}},
+ {t:"O que você acha de quem trai um amigo?", sub:"Na hora que mais precisava, ele sumiu ou negou.",
+  chips:["Imperdoável","Acabou a amizade","Depende"],
+  mirror:"Pedro jurou que morreria por Jesus. Horas depois, negou três vezes que o conhecia. Você já teve vergonha de dizer que é de Jesus?",
+  v1:{q:"E, virando-se o Senhor, olhou para Pedro... E, saindo Pedro para fora, chorou amargamente.",r:"Lucas 22:61-62"},
+  grace:"Jesus foi atrás do traidor e deu a ele uma missão.",
+  v2:{q:"Senhor, tu sabes tudo; tu sabes que eu te amo. Jesus disse-lhe: Apascenta as minhas ovelhas.",r:"João 21:17"}},
+ {t:"O que você acha de quem só aparece quando precisa de algo?", sub:"Some, e volta quando quer um favor.",
+  chips:["Interesseiro","Eu ajudo, mas fico esperto","Corto logo"],
+  mirror:"Quando a gente mais ora? Na prova, no aperto, na doença. E quando tudo vai bem, quanto tempo damos a Deus?",
+  v1:{q:"Não foram dez os limpos? E onde estão os nove?",r:"Lucas 17:17"},
+  grace:"Mesmo assim, toda manhã a misericórdia dEle chega nova.",
+  v2:{q:"As misericórdias do Senhor são a causa de não sermos consumidos, porque as suas misericórdias não têm fim; novas são cada manhã.",r:"Lamentações 3:22-23"}},
+ {t:"O que você acha de alguém que não perdoa ninguém?", sub:"Guarda tudo, cobra tudo, esquece nada.",
+  chips:["Pessoa amarga","Tem seus motivos","Eu sou assim"],
+  mirror:"Quanto Deus já perdoou você? E quanto você ainda está cobrando de alguém?",
+  v1:{q:"Não devias tu, igualmente, ter compaixão do teu companheiro, como eu também tive misericórdia de ti?",r:"Mateus 18:33"},
+  grace:"O perdão que recebemos é a medida do perdão que podemos dar.",
+  v2:{q:"Sede uns para com os outros benignos, misericordiosos, perdoando-vos uns aos outros, como também Deus vos perdoou em Cristo.",r:"Efésios 4:32"}},
+ {t:"O que você acha de quem mente?", sub:"Mesmo as mentirinhas \"sem importância\".",
+  chips:["Não confio mais","Depende da mentira","Mentirinha pode"],
+  mirror:"Você nunca mentiu? Nem pros pais, nem pro professor, nem no \"tô chegando\"?",
+  v1:{q:"Se dissermos que não temos pecado, enganamo-nos a nós mesmos, e não há verdade em nós.",r:"1 João 1:8"},
+  grace:"A mancha pode ser forte. O sangue de Jesus é mais.",
+  v2:{q:"Ainda que os vossos pecados sejam como a escarlata, eles se tornarão brancos como a neve.",r:"Isaías 1:18"}},
+ {t:"Alguém que te decepcionou várias vezes merece outra chance?", sub:"Não foi uma vez. Foram muitas.",
+  chips:["Não, chega","Uma última","Sempre"],
+  mirror:"Quantas chances Deus já te deu? Você já perdeu a conta. Ele também, de propósito.",
+  v1:{q:"Senhor, até quantas vezes pecará meu irmão contra mim, e eu lhe perdoarei? Até sete? Jesus lhe disse: Não te digo que até sete, mas até setenta vezes sete.",r:"Mateus 18:21-22"},
+  grace:"Deus joga nossos pecados num lugar de onde não se busca de volta.",
+  v2:{q:"Tornará a apiedar-se de nós; subjugará as nossas iniquidades, e tu lançarás todos os seus pecados nas profundezas do mar.",r:"Miqueias 7:19"}}
+];
+const COLORS=["var(--s1)","var(--s1)","var(--s2)","var(--s2)","var(--s3)","var(--s4)","var(--s4)","var(--s5)"];
+const app=document.getElementById("app");
+const ans={}; // respostas ficam só na tela desta pessoa
+function load(){try{Object.assign(ans,JSON.parse(localStorage.getItem("prisma")||"{}"))}catch(e){}}
+function save(){try{localStorage.setItem("prisma",JSON.stringify(ans))}catch(e){}}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function home(){
+  app.innerHTML=`<div class="spectrum"></div>
+  <div class="eyebrow">Dinâmica</div>
+  <h1>Por esse prisma</h1>
+  <p class="lead">Responda rápido, sem pensar muito. Depois veja a mesma pergunta por outro ângulo.</p>
+  <ol class="list">${Q.map((q,i)=>`<li><a href="#p${i+1}"><span class="num" style="background:${COLORS[i]}">${i+1}</span><span>${esc(q.t)}</span>${ans[i]!=null?'<span class="done">respondida</span>':''}</a></li>`).join("")}</ol>
+  <p class="foot">Espere o líder chamar cada pergunta.</p>`;
+}
+
+function ask(i){
+  const q=Q[i];
+  app.innerHTML=`<div class="spectrum"></div>
+  <a class="eyebrow" href="#" style="text-decoration:none">← Todas as perguntas</a>
+  <div class="card">
+    <div class="eyebrow">Pergunta ${i+1} de ${Q.length}</div>
+    <h2>${esc(q.t)}</h2>
+    <p class="lead">${esc(q.sub)}</p>
+    <div class="chips">${q.chips.map(c=>`<button type="button" class="chip" aria-pressed="false">${esc(c)}</button>`).join("")}</div>
+    <label for="r${i}" class="eyebrow">Ou escreva com suas palavras</label>
+    <textarea id="r${i}" placeholder="Seja sincero, só você vê isso"></textarea>
+    <button class="btn" id="go" disabled>Ver o outro lado</button>
+  </div>`;
+  const ta=app.querySelector("textarea"),go=app.querySelector("#go"),chips=[...app.querySelectorAll(".chip")];
+  if(ans[i]) ta.value=ans[i];
+  const sync=()=>go.disabled=!ta.value.trim();
+  chips.forEach(b=>b.onclick=()=>{chips.forEach(x=>x.setAttribute("aria-pressed","false"));b.setAttribute("aria-pressed","true");ta.value=b.textContent;sync()});
+  ta.oninput=()=>{chips.forEach(x=>x.setAttribute("aria-pressed","false"));sync()};
+  sync();
+  go.onclick=()=>{ans[i]=ta.value.trim();save();reveal(i)};
+}
+
+function reveal(i){
+  const q=Q[i],next=i+1<Q.length?`#p${i+2}`:"#fim";
+  app.innerHTML=`<div class="spectrum"></div>
+  <a class="eyebrow" href="#" style="text-decoration:none">← Todas as perguntas</a>
+  <div class="card reveal">
+    <div class="eyebrow">Você respondeu</div>
+    <p class="said">"${esc(ans[i])}"</p>
+    <div class="prism">E olhando por esse prisma?</div>
+    <p>${esc(q.mirror)}</p>
+    <div class="verse"><q>${esc(q.v1.q)}</q><span class="ref">${esc(q.v1.r)}</span></div>
+    <div class="label">Mas tem mais</div>
+    <p>${esc(q.grace)}</p>
+    <div class="verse"><q>${esc(q.v2.q)}</q><span class="ref">${esc(q.v2.r)}</span></div>
+  </div>
+  <div class="row"><a class="btn ghost" href="#">Todas</a><a class="btn" href="${next}">${i+1<Q.length?"Próxima":"Encerrar"}</a></div>`;
+  window.scrollTo(0,0);
+}
+
+function fim(){
+  app.innerHTML=`<div class="spectrum"></div>
+  <div class="card reveal">
+    <div class="eyebrow">Para levar pra casa</div>
+    <h2>Cristo morreu por eles também. E por você.</h2>
+    <p>Em cada pergunta, a pessoa que você julgou tinha um pouco de você. A cruz não é só para os outros.</p>
+    <div class="verse"><q>Mas Deus prova o seu amor para conosco em que Cristo morreu por nós, sendo nós ainda pecadores.</q><span class="ref">Romanos 5:8</span></div>
+  </div>
+  <a class="btn ghost" href="#">Voltar às perguntas</a>`;
+  window.scrollTo(0,0);
+}
+
+function route(){
+  const h=location.hash.slice(1);
+  const m=h.match(/^p(\d+)$/);
+  if(m&&Q[m[1]-1]) ask(m[1]-1);
+  else if(h==="fim") fim();
+  else home();
+  window.scrollTo(0,0);
+}
+load();
+addEventListener("hashchange",route);
+route();
+</script>
+
+</body>
+</html>
