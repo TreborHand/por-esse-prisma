@@ -59,6 +59,14 @@ textarea{width:100%;min-height:84px;border:1px solid var(--line);border-radius:1
 .reveal{animation:rise .5s ease both}
 @keyframes rise{from{transform:translateY(10px);opacity:.2}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){.reveal{animation:none}}
+.wheelbox{position:relative;width:min(100%,340px);margin:4px auto 0;aspect-ratio:1;max-width:100%}
+.wheel{width:100%;height:100%;display:block;filter:drop-shadow(0 6px 14px rgba(20,24,60,.18))}
+.wheel path{stroke:var(--card);stroke-width:2}
+.wnum{fill:#fff;font-family:var(--display);font-weight:800;font-size:22px}
+.wheel path.used{opacity:.28}
+.left{text-align:center;color:var(--muted);font-size:.92rem;margin-top:-6px}
+.hub{fill:var(--card);stroke:var(--line);stroke-width:2}
+.pointer{position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:26px solid var(--fg);z-index:2}
 .foot{font-size:.8rem;color:var(--muted);text-align:center}
 </style>
 <style>body{margin:0}</style>
@@ -126,19 +134,55 @@ function load(){try{Object.assign(ans,JSON.parse(localStorage.getItem("prisma")|
 function save(){try{localStorage.setItem("prisma",JSON.stringify(ans))}catch(e){}}
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
+let rot=0,spinning=false,drawn=[];
+try{drawn=JSON.parse(localStorage.getItem("prisma-sorteadas")||"[]")}catch(e){}
+function saveDrawn(){try{localStorage.setItem("prisma-sorteadas",JSON.stringify(drawn))}catch(e){}}
+function leftText(){const f=Q.length-drawn.length;return drawn.length===0?`${Q.length} perguntas na roleta`:f===0?"Você já passou por todas! A roleta recomeça no próximo giro.":`Faltam ${f} de ${Q.length} perguntas`}
 function home(){
+  const n=Q.length,R=100,cx=110,cy=110;
+  const pt=(deg,r)=>{const a=(deg-90)*Math.PI/180;return [cx+r*Math.cos(a),cy+r*Math.sin(a)]};
+  const slices=Q.map((q,i)=>{const a0=i*360/n,a1=(i+1)*360/n,[x0,y0]=pt(a0,R),[x1,y1]=pt(a1,R),[tx,ty]=pt(a0+180/n,R*0.66);
+    return `<path d="M${cx},${cy} L${x0},${y0} A${R},${R} 0 0,1 ${x1},${y1} Z" style="fill:${COLORS[i]}" class="${drawn.includes(i)?'used':''}" data-i="${i}"/>
+    <text x="${tx}" y="${ty}" text-anchor="middle" dominant-baseline="central" class="wnum">${i+1}</text>`}).join("");
   app.innerHTML=`<div class="spectrum"></div>
   <div class="eyebrow">Dinâmica</div>
   <h1>Por esse prisma</h1>
-  <p class="lead">Responda rápido, sem pensar muito. Depois veja a mesma pergunta por outro ângulo.</p>
-  <ol class="list">${Q.map((q,i)=>`<li><a href="#p${i+1}"><span class="num" style="background:${COLORS[i]}">${i+1}</span><span>${esc(q.t)}</span>${ans[i]!=null?'<span class="done">respondida</span>':''}</a></li>`).join("")}</ol>
-  <p class="foot">Espere o líder chamar cada pergunta.</p>`;
+  <p class="lead">Gire a roleta, conte pra turma qual pergunta caiu e responda no seu celular. A sua resposta é só sua.</p>
+  <div class="wheelbox">
+    <div class="pointer" aria-hidden="true"></div>
+    <svg viewBox="0 0 220 220" class="wheel" id="wheel" style="transform:rotate(${rot}deg)" role="img" aria-label="Roleta com ${n} perguntas">${slices}
+      <circle cx="${cx}" cy="${cy}" r="18" class="hub"/></svg>
+  </div>
+  <p class="left" id="left">${leftText()}</p>
+  <button class="btn" id="spin">Girar a roleta</button>
+  <div id="result" hidden></div>`;
+  document.getElementById("spin").onclick=spin;
+}
+function spin(){
+  if(spinning) return; spinning=true;
+  if(drawn.length>=Q.length){drawn=[];saveDrawn();document.querySelectorAll(".wheel path").forEach(p=>p.classList.remove("used"))}
+  const pool=Q.map((_,k)=>k).filter(k=>!drawn.includes(k));
+  const n=Q.length,i=pool[Math.floor(Math.random()*pool.length)],c=i*360/n+180/n,j=(Math.random()-.5)*(360/n)*0.6;
+  const base=rot-(rot%360);
+  rot=base+360*5+(360-c)+j;
+  const w=document.getElementById("wheel"),btn=document.getElementById("spin"),res=document.getElementById("result");
+  btn.disabled=true;res.hidden=true;
+  const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  w.style.transition=reduce?"none":"transform 4.2s cubic-bezier(.12,.7,.14,1)";
+  w.style.transform=`rotate(${rot}deg)`;
+  setTimeout(()=>{spinning=false;drawn.push(i);saveDrawn();
+    const sl=document.querySelector(`.wheel path[data-i="${i}"]`);if(sl)sl.classList.add("used");
+    document.getElementById("left").textContent=leftText();btn.disabled=false;btn.textContent="Girar de novo";
+    res.innerHTML=`<div class="card reveal"><div class="eyebrow">Caiu a pergunta ${i+1}</div><h2>${esc(Q[i].t)}</h2>
+    <p class="lead">Fale pra turma qual pergunta caiu. A resposta você não precisa contar.</p>
+    <a class="btn" href="#p${i+1}">Responder</a></div>`;res.hidden=false;
+    res.scrollIntoView({behavior:reduce?"auto":"smooth",block:"start"})},reduce?50:4300);
 }
 
 function ask(i){
   const q=Q[i];
   app.innerHTML=`<div class="spectrum"></div>
-  <a class="eyebrow" href="#" style="text-decoration:none">← Todas as perguntas</a>
+  <a class="eyebrow" href="#" style="text-decoration:none">← Voltar à roleta</a>
   <div class="card">
     <div class="eyebrow">Pergunta ${i+1} de ${Q.length}</div>
     <h2>${esc(q.t)}</h2>
@@ -158,9 +202,9 @@ function ask(i){
 }
 
 function reveal(i){
-  const q=Q[i],next=i+1<Q.length?`#p${i+2}`:"#fim";
+  const q=Q[i];
   app.innerHTML=`<div class="spectrum"></div>
-  <a class="eyebrow" href="#" style="text-decoration:none">← Todas as perguntas</a>
+  <a class="eyebrow" href="#" style="text-decoration:none">← Voltar à roleta</a>
   <div class="card reveal">
     <div class="eyebrow">Você respondeu</div>
     <p class="said">"${esc(ans[i])}"</p>
@@ -171,7 +215,7 @@ function reveal(i){
     <p>${esc(q.grace)}</p>
     <div class="verse"><q>${esc(q.v2.q)}</q><span class="ref">${esc(q.v2.r)}</span></div>
   </div>
-  <div class="row"><a class="btn ghost" href="#">Todas</a><a class="btn" href="${next}">${i+1<Q.length?"Próxima":"Encerrar"}</a></div>`;
+  <a class="btn ghost" href="#">Voltar à roleta</a>`;
   window.scrollTo(0,0);
 }
 
@@ -183,7 +227,7 @@ function fim(){
     <p>Em cada pergunta, a pessoa que você julgou tinha um pouco de você. A cruz não é só para os outros.</p>
     <div class="verse"><q>Mas Deus prova o seu amor para conosco em que Cristo morreu por nós, sendo nós ainda pecadores.</q><span class="ref">Romanos 5:8</span></div>
   </div>
-  <a class="btn ghost" href="#">Voltar às perguntas</a>`;
+  <a class="btn ghost" href="#">Voltar à roleta</a>`;
   window.scrollTo(0,0);
 }
 
